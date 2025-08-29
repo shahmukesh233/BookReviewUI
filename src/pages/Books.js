@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 
+function getUserRole() {
+  const user = localStorage.getItem('user');
+  if (user) {
+    try {
+      const role = JSON.parse(user).role;
+      return role === 'ADMIN' ? 'ADMIN' : 'USER';
+    } catch {}
+  }
+  return 'USER';
+}
+
 function Books() {
   const [favorites, setFavorites] = useState([]);
   const [books, setBooks] = useState([]);
@@ -21,6 +32,7 @@ function Books() {
   const [review, setReview] = useState({ rating: 0, comment: '' });
   const [editBookId, setEditBookId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', author: '', description: '', coverImage: '', genres: '', publishedYear: '' });
+  const userRole = getUserRole();
 
   useEffect(() => {
     fetchBooks();
@@ -112,10 +124,18 @@ function Books() {
   return (
     <div className="container-fluid books-page min-vh-100" style={{ background: '#f7faff', padding: '10px' }}>
       <div className="d-flex justify-content-center align-items-center mb-3" style={{ width: '100%', padding: '10px' }}>
-        <button className="btn btn-primary me-3" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Close' : 'Add New Book'}
-        </button>
+        {userRole === 'ADMIN' ? (
+          <button className="btn btn-primary me-3" onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Close' : 'Add New Book'}
+          </button>
+        ) : (
+          <button className="btn btn-primary me-3" disabled style={{ backgroundColor: '#e0e0e0', color: '#888', borderColor: '#e0e0e0' }}>
+            {showForm ? 'Close' : 'Add New Book'}
+          </button>
+        )}
+        <label htmlFor="searchInput" className="me-2 fw-bold">Search:</label>
         <input
+          id="searchInput"
           type="text"
           className="form-control"
           style={{ maxWidth: 300 }}
@@ -226,8 +246,17 @@ function Books() {
                   <td>{book.reviewCount !== undefined && book.reviewCount !== null ? book.reviewCount : '-'}</td>
                   <td>
                     <div className="d-flex flex-row gap-2 justify-content-center align-items-center">
-                      <button className="btn btn-warning btn-sm" onClick={() => handleEditClick(book)}>Edit</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(book.id)}>Delete</button>
+                      {userRole === 'ADMIN' ? (
+                        <>
+                          <button className="btn btn-warning btn-sm" onClick={() => handleEditClick(book)}>Edit</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(book.id)}>Delete</button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="btn btn-warning btn-sm" disabled style={{ backgroundColor: '#e0e0e0', color: '#888', borderColor: '#e0e0e0' }}>Edit</button>
+                          <button className="btn btn-danger btn-sm" disabled style={{ backgroundColor: '#e0e0e0', color: '#888', borderColor: '#e0e0e0' }}>Delete</button>
+                        </>
+                      )}
                       <button className="btn btn-info btn-sm" onClick={() => { setReviewBookId(book.id); setShowReviewModal(true); }}>Review</button>
                       {isFav ? (
                         <button className="btn btn-danger btn-sm" onClick={async () => {

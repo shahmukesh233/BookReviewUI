@@ -10,12 +10,12 @@ function Review() {
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    fetchUserReviews();
+    fetchAllReviews();
   }, []);
 
-  const fetchUserReviews = async () => {
+  const fetchAllReviews = async () => {
     try {
-      const res = await api.get(`/api/reviews/user/${userId}`);
+      const res = await api.get('/api/reviews/all');
       setReviews(res.data || []);
     } catch (err) {
       setReviews([]);
@@ -50,7 +50,7 @@ function Review() {
 
   return (
     <div className="container py-5">
-      <h2 className="mb-4 text-center text-primary">My Reviews</h2>
+      <h2 className="mb-4 text-center text-primary">All Reviews</h2>
       <Table striped bordered hover responsive className="shadow">
         <thead className="table-dark">
           <tr>
@@ -65,18 +65,34 @@ function Review() {
           {reviews.length === 0 ? (
             <tr><td colSpan="5" className="text-center">No reviews found.</td></tr>
           ) : (
-            reviews.map(r => (
-              <tr key={r.id}>
-                <td>{r.bookTitle || (r.book && r.book.title) || <span className="text-muted">N/A</span>}</td>
-                <td>{r.rating} ⭐</td>
-                <td>{r.comment}</td>
-                <td>{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <Button variant="info" size="sm" className="me-2" onClick={() => handleEdit(r)}>Edit</Button>
-                  <Button variant="danger" size="sm" onClick={() => handleDelete(r.id)}>Delete</Button>
-                </td>
-              </tr>
-            ))
+            reviews.map(r => {
+              const isOwnReview = String(r.userId) === String(userId);
+              return (
+                <tr key={r.id}>
+                  <td>{r.bookTitle || (r.book && r.book.title) || <span className="text-muted">N/A</span>}</td>
+                  <td>{r.rating} ⭐</td>
+                  <td>{r.comment}</td>
+                  <td>{new Date(r.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <Button
+                      variant="info"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleEdit(r)}
+                      disabled={!isOwnReview}
+                      style={!isOwnReview ? { backgroundColor: '#e0e0e0', color: '#888', borderColor: '#e0e0e0' } : {}}
+                    >Edit</Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(r.id)}
+                      disabled={!isOwnReview}
+                      style={!isOwnReview ? { backgroundColor: '#e0e0e0', color: '#888', borderColor: '#e0e0e0' } : {}}
+                    >Delete</Button>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </Table>

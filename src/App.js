@@ -20,9 +20,32 @@ function LogoutButton({ setIsAuthenticated }) {
   };
   // Hide on login page
   if (location.pathname === '/login') return null;
+  // Get user info from localStorage
+  let firstName = '';
+  let lastName = '';
+  const user = localStorage.getItem('user');
+  if (user) {
+    try {
+      const userObj = JSON.parse(user);
+      firstName = userObj.firstName || '';
+      lastName = userObj.lastName || '';
+    } catch {}
+  }
+  const displayName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : 'User';
   return (
-    <div className="position-absolute top-0 end-0 p-3">
-      <button className="btn btn-outline-danger" onClick={handleLogout}>Logout</button>
+    <div className="position-absolute top-0 end-0 p-3 d-flex align-items-center gap-3">
+      <span style={{
+        background: 'linear-gradient(90deg, #6dd5ed, #2193b0)',
+        color: '#fff',
+        padding: '8px 18px',
+        fontSize: '1.15rem',
+        borderRadius: '24px',
+        fontWeight: 600,
+        boxShadow: '0 2px 8px rgba(33,147,176,0.15)'
+      }}>
+        {displayName}
+      </span>
+      <button className="btn btn-outline-danger" style={{ fontWeight: 600, fontSize: '1rem', padding: '8px 18px' }} onClick={handleLogout}>Logout</button>
     </div>
   );
 }

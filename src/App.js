@@ -27,8 +27,8 @@ function LogoutButton({ setIsAuthenticated }) {
   if (user) {
     try {
       const userObj = JSON.parse(user);
-      firstName = userObj.firstName || '';
-      lastName = userObj.lastName || '';
+      firstName = userObj.firstname || '';
+      lastName = userObj.lastname || '';
     } catch {}
   }
   const displayName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : 'User';

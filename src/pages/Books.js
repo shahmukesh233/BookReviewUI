@@ -127,13 +127,14 @@ function Books() {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     await api.put(`/api/books/${editBookId}`, editForm);
     setEditBookId(null);
     setEditForm({ title: '', author: '', description: '', coverImage: '', genres: '', publishedYear: '' });
     fetchBooks();
-  fetchRecommendedBooks();
+    fetchRecommendedBooks();
   };
 
   // Delete book
@@ -231,7 +232,7 @@ function Books() {
                 </tr>
               </thead>
               <tbody>
-                {[...books].sort((a, b) => (a.title || '').localeCompare(b.title || '')).map(book => {
+                {books.map(book => {
                   const isFav = favorites.some(fav => fav.bookId === book.id);
                   return (
                     <tr key={book.id}>
@@ -324,10 +325,11 @@ function Books() {
                       seenIds.add(book.id);
                     }
                   }
-                  if (uniqueBooks.length === 0) {
+                  const topBooks = uniqueBooks.slice(0, 5);
+                  if (topBooks.length === 0) {
                     return <tr><td colSpan="8" className="text-center">No recommendations available.</td></tr>;
                   }
-                  return uniqueBooks.map(book => (
+                  return topBooks.map(book => (
                     <tr key={book.id}>
                       <td style={{ width: 110 }}>
                         <img
@@ -386,37 +388,68 @@ function Books() {
         </form>
       )}
       {editBookId && (
-        <form className="card p-4 mb-4 shadow" style={{ maxWidth: 800, margin: '0 auto' }} onSubmit={handleEditSubmit}>
-          <h3 className="mb-3 text-primary">Edit Book</h3>
-          <div className="row mb-3">
-            <div className="col-md-6 mb-2">
-              <input name="title" className="form-control" placeholder="Title" value={editForm.title} onChange={handleEditFormChange} required />
-            </div>
-            <div className="col-md-6 mb-2">
-              <input name="author" className="form-control" placeholder="Author" value={editForm.author} onChange={handleEditFormChange} required />
+        <div className="modal show d-block" tabIndex="-1" role="dialog" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title text-primary">Edit Book</h5>
+                <button type="button" className="btn-close" onClick={() => setEditBookId(null)}></button>
+              </div>
+              <form onSubmit={handleEditSubmit}>
+                <div className="modal-body">
+                  <div className="row mb-3">
+                    <div className="col-md-6 mb-2">
+                      <label htmlFor="edit-title" className="form-label">Title</label>
+                      <input id="edit-title" name="title" className="form-control" placeholder="Title" value={editForm.title} onChange={handleEditFormChange} required />
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <label htmlFor="edit-author" className="form-label">Author</label>
+                      <input id="edit-author" name="author" className="form-control" placeholder="Author" value={editForm.author} onChange={handleEditFormChange} required />
+                    </div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-6 mb-2">
+                      <label htmlFor="edit-publishedYear" className="form-label">Published Year</label>
+                      <input
+                        id="edit-publishedYear"
+                        name="publishedYear"
+                        className="form-control"
+                        type="number"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        step="1"
+                        placeholder="Published Year"
+                        value={editForm.publishedYear}
+                        onChange={handleEditFormChange}
+                        onFocus={e => e.target.showPicker && e.target.showPicker()}
+                      />
+                    </div>
+                    <div className="col-md-6 mb-2">
+                      <label htmlFor="edit-genres" className="form-label">Genres (comma separated)</label>
+                      <input id="edit-genres" name="genres" className="form-control" placeholder="Genres (comma separated)" value={editForm.genres} onChange={handleEditFormChange} />
+                    </div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-12 mb-2">
+                      <label htmlFor="edit-coverImage" className="form-label">Cover Image URL</label>
+                      <input id="edit-coverImage" name="coverImage" className="form-control" placeholder="Cover Image URL" value={editForm.coverImage} onChange={handleEditFormChange} />
+                    </div>
+                  </div>
+                  <div className="row mb-3">
+                    <div className="col-md-12 mb-2">
+                      <label htmlFor="edit-description" className="form-label">Description</label>
+                      <textarea id="edit-description" name="description" className="form-control" placeholder="Description" value={editForm.description} onChange={handleEditFormChange} />
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="submit" className="btn btn-primary">Update Book</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setEditBookId(null)}>Cancel</button>
+                </div>
+              </form>
             </div>
           </div>
-          <div className="row mb-3">
-            <div className="col-md-6 mb-2">
-              <input name="publishedYear" className="form-control" placeholder="Published Year" value={editForm.publishedYear} onChange={handleEditFormChange} />
-            </div>
-            <div className="col-md-6 mb-2">
-              <input name="genres" className="form-control" placeholder="Genres (comma separated)" value={editForm.genres} onChange={handleEditFormChange} />
-            </div>
-          </div>
-          <div className="row mb-3">
-            <div className="col-md-12 mb-2">
-              <input name="coverImage" className="form-control" placeholder="Cover Image URL" value={editForm.coverImage} onChange={handleEditFormChange} />
-            </div>
-          </div>
-          <div className="row mb-3">
-            <div className="col-md-12 mb-2">
-              <textarea name="description" className="form-control" placeholder="Description" value={editForm.description} onChange={handleEditFormChange} />
-            </div>
-          </div>
-          <button type="submit" className="btn btn-primary w-100">Update Book</button>
-          <button type="button" className="btn btn-secondary w-100 mt-2" onClick={() => setEditBookId(null)}>Cancel</button>
-        </form>
+        </div>
       )}
 
       {/* Review Modal */}
